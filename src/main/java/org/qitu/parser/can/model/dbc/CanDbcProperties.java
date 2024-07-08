@@ -16,7 +16,7 @@ public class CanDbcProperties {
      * <p>
      * 必须有，但是多半为空 (This section is required but is normally empty.)
      * */
-    private String version;
+    private CanDbcVersion version;
 
     /**
      * 新节点（New Symbols）
@@ -51,7 +51,7 @@ public class CanDbcProperties {
      * 	BU_BO_REL_<br>
      * 	SG_MUL_VAL_<br>
      * */
-    private List<String> newSymbols;
+    private CanDbcNewSymbols newSymbols;
 
     /**
      * 位计时器（Bit Timing Definition）
@@ -69,4 +69,21 @@ public class CanDbcProperties {
      * 消息集 （Messages, BO_）
      * */
     private List<CanDbcMessage> messages;
+
+
+    public CanDbcVersion getVersion() {
+        return version;
+    }
+
+    public void setVersion(CanDbcVersion version) {
+        this.version = version;
+    }
+
+    public CanDbcNewSymbols getNewSymbols() {
+        return newSymbols;
+    }
+
+    public void setNewSymbols(CanDbcNewSymbols newSymbols) {
+        this.newSymbols = newSymbols;
+    }
 }

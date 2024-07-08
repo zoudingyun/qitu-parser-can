@@ -12,7 +12,9 @@
         <maven.compiler.source>8</maven.compiler.source>
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <qitu.core.version>0.0.1</qitu.core.version>
+        <qitu.core.version>0.0.2</qitu.core.version>
+        <!--单元测试-->
+        <junit.version>5.10.2</junit.version>
     </properties>
 
     <dependencies>
@@ -22,6 +24,20 @@
             <groupId>org.qitu.parser</groupId>
             <artifactId>qitu-parser-core</artifactId>
             <version>${qitu.core.version}</version>
+        </dependency>
+
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>

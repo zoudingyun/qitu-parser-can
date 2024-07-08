@@ -11,7 +11,7 @@ import java.util.List;
  * @author zoudingyun
  * @since 2024/7/3 11:20
  */
-public class CanDbcSignal {
+public class CanDbcSignal extends CanDbcPart {
 
     /**
      * 信号名（SignalName）

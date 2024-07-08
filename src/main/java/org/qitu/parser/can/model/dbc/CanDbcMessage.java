@@ -1,7 +1,7 @@
 package org.qitu.parser.can.model.dbc;
 
-import cn.hutool.core.util.StrUtil;
 import org.qitu.parser.can.exceptions.CanDbcInvalidParameterException;
+import org.qitu.parser.core.util.StrUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.List;
  * @author zoudingyun
  * @since 2024/7/3 11:08
  */
-public class CanDbcMessage {
+public class CanDbcMessage extends CanDbcPart{
 
     /**
      * 消息id （message_id）
@@ -86,7 +86,7 @@ public class CanDbcMessage {
      * 通过信号名删除信号（delete signal by name）
      * */
     public void delSignalByName(String signalName){
-        if(signalList == null || StrUtil.isBlankIfStr(signalName)){
+        if(signalList == null || StrUtils.isBlank(signalName)){
             return;
         }
         for (CanDbcSignal signal : signalList) {
