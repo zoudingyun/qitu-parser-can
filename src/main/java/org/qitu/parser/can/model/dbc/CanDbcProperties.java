@@ -1,5 +1,8 @@
 package org.qitu.parser.can.model.dbc;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -9,7 +12,7 @@ import java.util.List;
  * @since 0.0.1
  * 2024/7/1 10:44
  */
-public class CanDbcProperties {
+public class CanDbcProperties implements CanDbcAttributeCreator{
 
     /**
      * 版本 (version)
@@ -20,55 +23,23 @@ public class CanDbcProperties {
 
     /**
      * 新节点（New Symbols）
-     * <p>
-     *  基本固定为以下内容：<br>
-     *  NS_DESC_<br>
-     * 	CM_<br>
-     * 	BA_DEF_<br>
-     * 	BA_<br>
-     * 	VAL_<br>
-     * 	CAT_DEF_<br>
-     * 	CAT_<br>
-     * 	FILTER<br>
-     * 	BA_DEF_DEF_<br>
-     * 	EV_DATA_<br>
-     * 	ENVVAR_DATA_<br>
-     * 	SGTYPE_<br>
-     * 	SGTYPE_VAL_<br>
-     * 	BA_DEF_SGTYPE_<br>
-     * 	BA_SGTYPE_<br>
-     * 	SIG_TYPE_REF_<br>
-     * 	VAL_TABLE_<br>
-     * 	SIG_GROUP_<br>
-     * 	SIG_VALTYPE_<br>
-     * 	SIGTYPE_VALTYPE_<br>
-     * 	BO_TX_BU_<br>
-     * 	BA_DEF_REL_<br>
-     * 	BA_REL_<br>
-     * 	BA_DEF_DEF_REL_<br>
-     * 	BU_SG_REL_<br>
-     * 	BU_EV_REL_<br>
-     * 	BU_BO_REL_<br>
-     * 	SG_MUL_VAL_<br>
      * */
     private CanDbcNewSymbols newSymbols;
 
     /**
-     * 位计时器（Bit Timing Definition）
-     * <p>
-     * 已弃用
-     * */
-    private Integer baudrate;
-
-    /**
      * 节点定义（Node Definitions）
      * */
-    private List<CanDbcNode> nodes;
+    private CanDbcNodes nodes;
 
     /**
      * 消息集 （Messages, BO_）
      * */
     private List<CanDbcMessage> messages;
+
+    /**
+     * 自定义属性设定集
+     * */
+    private List<CanDbcAttributeDefinition> attributeDefinitions;
 
 
     public CanDbcVersion getVersion() {
@@ -85,5 +56,74 @@ public class CanDbcProperties {
 
     public void setNewSymbols(CanDbcNewSymbols newSymbols) {
         this.newSymbols = newSymbols;
+    }
+
+    public CanDbcNodes getNodes() {
+        return nodes;
+    }
+
+    public void setNodes(CanDbcNodes nodes) {
+        this.nodes = nodes;
+    }
+
+    /**
+     * 添加一个自定义属性的定义
+     *
+     * @param attributeDefinition 定义信息
+     */
+    @Override
+    public void addAttributeDefinition(CanDbcAttributeDefinition attributeDefinition) {
+        if (this.attributeDefinitions == null){
+            this.attributeDefinitions = new ArrayList<CanDbcAttributeDefinition>();
+        }
+        this.attributeDefinitions.add(attributeDefinition);
+    }
+
+    /**
+     * 删除一个自定义属性的定义
+     *
+     * @param canDbcAttributeName 属性名称
+     */
+    @Override
+    public void delAttributeDefinitionByName(String canDbcAttributeName) {
+        if (this.attributeDefinitions != null){
+            // 使用 Iterator 进行遍历和删除
+            Iterator<CanDbcAttributeDefinition> iterator = this.attributeDefinitions.iterator();
+            while (iterator.hasNext()) {
+                CanDbcAttributeDefinition element = iterator.next();
+                if (canDbcAttributeName.equals(element.getAttributeName())) {
+                    iterator.remove();
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 重置自定义属性的定义集
+     *
+     * @param attributeDefinitions 属性集
+     */
+    @Override
+    public void setAttributeDefinitions(List<CanDbcAttributeDefinition> attributeDefinitions) {
+        this.attributeDefinitions = attributeDefinitions;
+    }
+
+    /**
+     * 获取自定义属性的定义集
+     *
+     * @return 属性集
+     */
+    @Override
+    public List<CanDbcAttributeDefinition> getAttributeDefinitions() {
+        return this.attributeDefinitions;
+    }
+
+    /**
+     * 清除自定义属性的定义集
+     */
+    @Override
+    public void removeAttributeDefinitions() {
+        this.attributeDefinitions = new ArrayList<>();
     }
 }

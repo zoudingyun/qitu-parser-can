@@ -6,7 +6,7 @@ package org.qitu.parser.can.model.dbc.enums;
  * @author zoudingyun
  * @since 2024/7/5 11:13
  */
-public enum CanDbcPartTypes {
+public enum CanDbcPartType {
 
     /**
      * 版本
@@ -118,16 +118,16 @@ public enum CanDbcPartTypes {
      * <br>
      * Unknown
      * */
-    UNKNOWN ("UNKNOWN");
+    UNKNOWN ("");
 
     public final String name;
 
-    CanDbcPartTypes(String name) {
+    CanDbcPartType(String name) {
         this.name = name;
     }
 
-    public static CanDbcPartTypes fromValue(String value) {
-        for (CanDbcPartTypes type : CanDbcPartTypes.values()) {
+    public static CanDbcPartType fromValue(String value) {
+        for (CanDbcPartType type : CanDbcPartType.values()) {
             if (type.toString().equals(value)) {
                 return type;
             }

@@ -1,6 +1,6 @@
 package org.qitu.parser.can.model.dbc;
 
-import org.qitu.parser.can.model.dbc.enums.CanDbcPartTypes;
+import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
 
 /**
  * dbc版本（version）
@@ -17,7 +17,7 @@ public class CanDbcVersion extends CanDbcPart{
 
     public CanDbcVersion(String version){
         this.version = version;
-        setKeyword(CanDbcPartTypes.VERSION.toString());
+        setKeyword(CanDbcPartType.VERSION.toString());
     }
 
     public String getVersion() {

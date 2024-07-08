@@ -6,7 +6,7 @@ package org.qitu.parser.can.model.dbc;
  * @author zoudingyun
  * @since 2024/7/3 11:06
  */
-public class CanDbcNode extends CanDbcPart{
+public class CanDbcNode{
 
     /**
      * 节点名（node_name）

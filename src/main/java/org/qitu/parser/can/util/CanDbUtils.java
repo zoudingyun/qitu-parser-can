@@ -3,14 +3,13 @@ package org.qitu.parser.can.util;
 import org.qitu.parser.can.exceptions.CanDbcException;
 import org.qitu.parser.can.exceptions.CanDbcFileFormatException;
 import org.qitu.parser.can.model.dbc.*;
-import org.qitu.parser.can.model.dbc.enums.CanDbcPartTypes;
+import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
 import org.qitu.parser.core.util.StrUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +29,11 @@ public class CanDbUtils {
      * 分隔符
      */
     private static final String SPLIT_KEYWORD = " ";
+
+    /**
+     * 标题内容分隔符
+     */
+    private static final String TITLE_SPLIT_KEYWORD = ":";
 
     /**
      * 初始化一个CanDb
@@ -69,14 +73,14 @@ public class CanDbUtils {
     public static CanDbcProperties analysisCanDbc(List<String> canDbcFileLines) {
         CanDbcProperties canDbcProperties = new CanDbcProperties();
 
-        CanDbcPartTypes partType = CanDbcPartTypes.UNKNOWN;
+        CanDbcPartType partType = CanDbcPartType.UNKNOWN;
         // 遍历dbc文本行 (Traverse each line of text in the dbc file.)
         for (int i = 0; i < canDbcFileLines.size(); i++) {
             try {
                 if (StrUtils.isBlank(canDbcFileLines.get(i))) {
                     continue;
                 }else {
-                    if (partType != CanDbcPartTypes.UNKNOWN) {
+                    if (partType != CanDbcPartType.UNKNOWN) {
                         // 当前是新数据项（第一个字符为非空字符），还是数据项内容（第一个字符为空字符）
                         if (StrUtils.isBlank(String.valueOf(canDbcFileLines.get(i).charAt(0)))) {
                             analysisDbcPartContent(canDbcFileLines.get(i),canDbcProperties,partType);
@@ -108,7 +112,7 @@ public class CanDbUtils {
      * @param canDbcProperties dbc文件属性
      * @param partType 当前正在分析的数据项类型
      * */
-    private static void analysisDbcPartContent(String canDbcFileLine,CanDbcProperties canDbcProperties,CanDbcPartTypes partType){
+    private static void analysisDbcPartContent(String canDbcFileLine, CanDbcProperties canDbcProperties, CanDbcPartType partType){
         switch (partType){
             case NEW_SYMBOLS:{
                 List<String> newSymbolList = canDbcProperties.getNewSymbols().getNewSymbols();
@@ -116,7 +120,13 @@ public class CanDbUtils {
                     newSymbolList = new ArrayList<>();
                 }
                 String[] args = StrUtils.trim(canDbcFileLine).split(SPLIT_KEYWORD);
-                newSymbolList.addAll(Arrays.asList(args));
+                for (String arg : args) {
+                    arg = StrUtils.trim(arg);
+                    if (!StrUtils.isBlank(arg)){
+                        newSymbolList.add(arg);
+                    }
+                }
+                canDbcProperties.getNewSymbols().setNewSymbols(newSymbolList);
                 break;
             }
             default:{
@@ -131,7 +141,7 @@ public class CanDbUtils {
      * @param canDbcFileLine dbc文件行
      * @param canDbcProperties dbc文件属性
      * */
-    private static CanDbcPartTypes analysisDbcPart(String canDbcFileLine,CanDbcProperties canDbcProperties){
+    private static CanDbcPartType analysisDbcPart(String canDbcFileLine, CanDbcProperties canDbcProperties){
         String[] args = canDbcFileLine.split(SPLIT_KEYWORD);
         String keyWord = null;
         List<String> argValues = new ArrayList<String>();
@@ -157,10 +167,10 @@ public class CanDbUtils {
      * @param argValues 参数
      * @param canDbcProperties dbc文件属性
      */
-    private static CanDbcPartTypes createCanDbcPartByKeyWord(String keyWord, List<String> argValues, CanDbcProperties canDbcProperties) {
+    private static CanDbcPartType createCanDbcPartByKeyWord(String keyWord, List<String> argValues, CanDbcProperties canDbcProperties) {
         // 文本类
         String strRegex = "^\"(.*?)\"$";
-        CanDbcPartTypes canDbcPartType = CanDbcPartTypes.fromValue(keyWord);
+        CanDbcPartType canDbcPartType = CanDbcPartType.fromValue(keyWord);
         switch (canDbcPartType) {
             // 版本
             case VERSION:{
@@ -185,8 +195,38 @@ public class CanDbUtils {
             // 新节点
             case NEW_SYMBOLS:{
                 CanDbcNewSymbols newSymbols = new CanDbcNewSymbols();
-                newSymbols.setNewSymbols(argValues);
+                List<String> newSymbolList = new ArrayList<>();
+                for (String arg : argValues) {
+                    arg = StrUtils.trim(arg);
+                    if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
+                        newSymbolList.add(arg);
+                    }
+                }
+                newSymbols.setNewSymbols(newSymbolList);
                 canDbcProperties.setNewSymbols(newSymbols);
+                break;
+            }
+            // 波特率
+            case BIT_TIMING:{
+                // 已过时的项，忽略
+                break;
+            }
+            // 节点
+            case NODES:{
+                CanDbcNodes nodes = new CanDbcNodes();
+                if (argValues.isEmpty()) {
+                    nodes.setNodes(new ArrayList<>());
+                }else {
+                    List<CanDbcNode> nodeList = new ArrayList<>();
+                    for (String arg : argValues) {
+                        arg = StrUtils.trim(arg);
+                        if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
+                            nodeList.add(new CanDbcNode(arg));
+                        }
+                    }
+                    nodes.setNodes(nodeList);
+                }
+                canDbcProperties.setNodes(nodes);
                 break;
             }
         }

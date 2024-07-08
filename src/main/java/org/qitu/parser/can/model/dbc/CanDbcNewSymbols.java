@@ -1,6 +1,6 @@
 package org.qitu.parser.can.model.dbc;
 
-import org.qitu.parser.can.model.dbc.enums.CanDbcPartTypes;
+import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,7 +26,7 @@ public class CanDbcNewSymbols extends CanDbcPart {
 
     public void setNewSymbols(List<String> newSymbols) {
         this.newSymbols = newSymbols;
-        setKeyword(CanDbcPartTypes.NEW_SYMBOLS.toString());
+        setKeyword(CanDbcPartType.NEW_SYMBOLS.toString());
     }
 
     public void init() {
