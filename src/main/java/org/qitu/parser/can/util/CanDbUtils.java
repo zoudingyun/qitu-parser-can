@@ -183,19 +183,11 @@ public class CanDbUtils {
             // 版本
             case VERSION:{
                 canDbcProperties.setVersion(formatVersion(argValues));
+                break;
             }
             // 新节点
             case NEW_SYMBOLS:{
-                CanDbcNewSymbols newSymbols = new CanDbcNewSymbols();
-                List<String> newSymbolList = new ArrayList<>();
-                for (String arg : argValues) {
-                    arg = StrUtils.trim(arg);
-                    if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
-                        newSymbolList.add(arg);
-                    }
-                }
-                newSymbols.setNewSymbolList(newSymbolList);
-                canDbcProperties.setNewSymbols(newSymbols);
+                canDbcProperties.setNewSymbols(formatNewSymbols(argValues));
                 break;
             }
             // 波特率
@@ -205,93 +197,12 @@ public class CanDbUtils {
             }
             // 节点
             case NODES:{
-                CanDbcNodes nodes = new CanDbcNodes();
-                if (argValues.isEmpty()) {
-                    nodes.setNodeList(new ArrayList<>());
-                }else {
-                    List<CanDbcNode> nodeList = new ArrayList<>();
-                    for (String arg : argValues) {
-                        arg = StrUtils.trim(arg);
-                        if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
-                            nodeList.add(new CanDbcNode(arg));
-                        }
-                    }
-                    nodes.setNodeList(nodeList);
-                }
-                canDbcProperties.setNodes(nodes);
+                canDbcProperties.setNodes(formatNodes(argValues));
                 break;
             }
             // 消息
             case MESSAGE:{
-                CanDbcMessages messages = canDbcProperties.getMessages();
-                if (messages == null) {
-                    messages = new CanDbcMessages();
-                }
-                CanDbcMessage message = new CanDbcMessage();
-
-                if (argValues.isEmpty()) {
-                    throw new CanDbcFileFormatException("The configuration information format of the message is abnormal.");
-                }else {
-                    // 检查名称后面是不是跟着冒号
-                    if (argValues.size() == 4) {
-                        if (argValues.get(1).lastIndexOf(TITLE_SPLIT_KEYWORD) == (argValues.get(1).length()-1)) {
-                            // 如果消息名后面跟着冒号
-                            argValues.set(1,argValues.get(1).substring(0, argValues.get(1).length() - 1));
-                            argValues.add(2, TITLE_SPLIT_KEYWORD);
-                        }else {
-                            throw new CanDbcFileFormatException("The configuration information format of the message is abnormal.");
-                        }
-                    }
-                    for (int i = 0; i < argValues.size(); i++) {
-                        if (!StrUtils.isBlank(argValues.get(i))) {
-                            switch (i) {
-                                case 0:{
-                                    // 此配置为消息id
-                                    message.setMessageId(new BigInteger(argValues.get(i)));
-                                    break;
-                                }
-                                case 1:{
-                                    // 此配置为消息名
-                                    message.setMessageName(argValues.get(i));
-                                    break;
-                                }
-                                case 2:{
-                                    // 此为冒号分隔符
-                                    if (!TITLE_SPLIT_KEYWORD.equals(argValues.get(i))){
-                                        throw new CanDbcFileFormatException(String.format("The configuration information of the message does not meet expectations. The expected value is \"%s\", but the actual value is \"%s\".",TITLE_SPLIT_KEYWORD,argValues.get(i)));
-                                    }
-                                    break;
-                                }
-                                case 3:{
-                                    // 此为消息长度
-                                    message.setMessageSize(Integer.parseInt(argValues.get(i)));
-                                    break;
-                                }
-                                case 4:{
-                                    // 此为发送器
-                                    CanDbcNodes nodes = canDbcProperties.getNodes();
-                                    for (CanDbcNode node : nodes.getNodeList()) {
-                                        if (node.getName().equals(argValues.get(i))) {
-                                            message.setTransmitter(node);
-                                            break;
-                                        }
-                                    }
-                                    if (DEFAULT_TRANSMITTER.getName().equals(argValues.get(i))){
-                                        message.setTransmitter(DEFAULT_TRANSMITTER);
-                                    }
-                                    if (message.getTransmitter() == null) {
-                                        throw new CanDbcFileFormatException(String.format("Unknown transmitter node name:'%s'", argValues.get(i)));
-                                    }
-                                }
-                                default:{
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-                messages.getMessageList().add(message);
-                canDbcProperties.setMessages(messages);
+                canDbcProperties.setMessages(formatMessages(argValues,canDbcProperties));
                 break;
             }
         }
@@ -299,7 +210,7 @@ public class CanDbUtils {
     }
 
     /**
-     * 分析出版本
+     * 分析版本
      * @param argValues 配置附带的参数
      * @return 版本信息
      * */
@@ -319,6 +230,125 @@ public class CanDbUtils {
         }else {
             throw new CanDbcFileFormatException("The value of \"VERSION\" should not have multiple instances.");
         }
+    }
+
+    /**
+     * 分析新节点
+     * @param argValues 配置附带的参数
+     * @return 新节点信息
+     * */
+    private static CanDbcNewSymbols formatNewSymbols(List<String> argValues){
+        CanDbcNewSymbols newSymbols = new CanDbcNewSymbols();
+        List<String> newSymbolList = new ArrayList<>();
+        for (String arg : argValues) {
+            arg = StrUtils.trim(arg);
+            if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
+                newSymbolList.add(arg);
+            }
+        }
+        newSymbols.setNewSymbolList(newSymbolList);
+        return newSymbols;
+    }
+
+
+    /**
+     * 分析节点
+     * @param argValues 配置附带的参数
+     * @return 节点信息
+     * */
+    private static CanDbcNodes formatNodes(List<String> argValues){
+        CanDbcNodes nodes = new CanDbcNodes();
+        if (argValues.isEmpty()) {
+            nodes.setNodeList(new ArrayList<>());
+        }else {
+            List<CanDbcNode> nodeList = new ArrayList<>();
+            for (String arg : argValues) {
+                arg = StrUtils.trim(arg);
+                if (!StrUtils.isBlank(arg)&&!TITLE_SPLIT_KEYWORD.equals(arg)) {
+                    nodeList.add(new CanDbcNode(arg));
+                }
+            }
+            nodes.setNodeList(nodeList);
+        }
+        return nodes;
+    }
+
+    /**
+     * 分析消息定义
+     * @param argValues 配置附带的参数
+     * @param canDbcProperties dbc信息集
+     * @return 消息定义
+     * */
+    private static CanDbcMessages formatMessages(List<String> argValues, CanDbcProperties canDbcProperties){
+        CanDbcMessages messages = canDbcProperties.getMessages();
+        if (messages == null) {
+            messages = new CanDbcMessages();
+        }
+        CanDbcMessage message = new CanDbcMessage();
+
+        if (argValues.isEmpty()) {
+            throw new CanDbcFileFormatException("The configuration information format of the message is abnormal.");
+        }else {
+            // 检查名称后面是不是跟着冒号
+            if (argValues.size() == 4) {
+                if (argValues.get(1).lastIndexOf(TITLE_SPLIT_KEYWORD) == (argValues.get(1).length()-1)) {
+                    // 如果消息名后面跟着冒号
+                    argValues.set(1,argValues.get(1).substring(0, argValues.get(1).length() - 1));
+                    argValues.add(2, TITLE_SPLIT_KEYWORD);
+                }else {
+                    throw new CanDbcFileFormatException("The configuration information format of the message is abnormal.");
+                }
+            }
+            for (int i = 0; i < argValues.size(); i++) {
+                if (!StrUtils.isBlank(argValues.get(i))) {
+                    switch (i) {
+                        case 0:{
+                            // 此配置为消息id
+                            message.setMessageId(new BigInteger(argValues.get(i)));
+                            break;
+                        }
+                        case 1:{
+                            // 此配置为消息名
+                            message.setMessageName(argValues.get(i));
+                            break;
+                        }
+                        case 2:{
+                            // 此为冒号分隔符
+                            if (!TITLE_SPLIT_KEYWORD.equals(argValues.get(i))){
+                                throw new CanDbcFileFormatException(String.format("The configuration information of the message does not meet expectations. The expected value is \"%s\", but the actual value is \"%s\".",TITLE_SPLIT_KEYWORD,argValues.get(i)));
+                            }
+                            break;
+                        }
+                        case 3:{
+                            // 此为消息长度
+                            message.setMessageSize(Integer.parseInt(argValues.get(i)));
+                            break;
+                        }
+                        case 4:{
+                            // 此为发送器
+                            CanDbcNodes nodes = canDbcProperties.getNodes();
+                            for (CanDbcNode node : nodes.getNodeList()) {
+                                if (node.getName().equals(argValues.get(i))) {
+                                    message.setTransmitter(node);
+                                    break;
+                                }
+                            }
+                            if (DEFAULT_TRANSMITTER.getName().equals(argValues.get(i))){
+                                message.setTransmitter(DEFAULT_TRANSMITTER);
+                            }
+                            if (message.getTransmitter() == null) {
+                                throw new CanDbcFileFormatException(String.format("Unknown transmitter node name:'%s'", argValues.get(i)));
+                            }
+                        }
+                        default:{
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        messages.getMessageList().add(message);
+        return messages;
     }
 
 }

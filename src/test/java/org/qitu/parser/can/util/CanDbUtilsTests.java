@@ -29,6 +29,29 @@ public class CanDbUtilsTests {
         assertEquals(db.getCanDbcProperties().getVersion().getKeyword(),"VERSION");
 
         // 新节点
+        List<String> newSymbolList = getNewSymbolStrings();
+        assertArrayEquals(db.getCanDbcProperties().getNewSymbols().getNewSymbolList().toArray(new String[0]), newSymbolList.toArray(new String[0]));
+
+        // 节点
+        String[] rawNodes = "Receiver ChassisBus VehicleBus PartyBus".split(" ");
+        for (int i = 0; i < db.getCanDbcProperties().getNodes().getNodeList().size(); i++) {
+            assertEquals(db.getCanDbcProperties().getNodes().getNodeList().get(i).getName(),rawNodes[i]);
+        }
+
+        // 消息
+        CanDbcMessages messages = db.getCanDbcProperties().getMessages();
+        assertEquals(messages.getMessageList().get(0).getMessageId(),new BigInteger("12"));
+        assertEquals(messages.getMessageList().get(0).getMessageName(),"ID00CUI_status");
+        assertEquals(messages.getMessageList().get(0).getMessageSize(),8);
+        assertEquals(messages.getMessageList().get(0).getTransmitter().getName(),"VehicleBus");
+
+
+
+        int a = 0;
+
+    }
+
+    private static List<String> getNewSymbolStrings() {
         String raw = "NS_DESC_\n" +
                 "\tCM_\n" +
                 "\tBA_DEF_\n" +
@@ -58,25 +81,7 @@ public class CanDbUtilsTests {
                 "\tBU_BO_REL_\n" +
                 "\tSG_MUL_VAL_";
         List<String> newSymbolList = Arrays.asList(raw.split("\n\t"));
-        assertArrayEquals(db.getCanDbcProperties().getNewSymbols().getNewSymbolList().toArray(new String[0]), newSymbolList.toArray(new String[0]));
-
-        // 节点
-        String[] rawNodes = "Receiver ChassisBus VehicleBus PartyBus".split(" ");
-        for (int i = 0; i < db.getCanDbcProperties().getNodes().getNodeList().size(); i++) {
-            assertEquals(db.getCanDbcProperties().getNodes().getNodeList().get(i).getName(),rawNodes[i]);
-        }
-
-        // 消息
-        CanDbcMessages messages = db.getCanDbcProperties().getMessages();
-        assertEquals(messages.getMessageList().get(0).getMessageId(),new BigInteger("12"));
-        assertEquals(messages.getMessageList().get(0).getMessageName(),"ID00CUI_status");
-        assertEquals(messages.getMessageList().get(0).getMessageSize(),8);
-        assertEquals(messages.getMessageList().get(0).getTransmitter().getName(),"VehicleBus");
-
-
-
-        int a = 0;
-
+        return newSymbolList;
     }
 
 }
