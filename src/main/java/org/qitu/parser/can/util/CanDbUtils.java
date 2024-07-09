@@ -272,7 +272,7 @@ public class CanDbUtils {
                     case 6:{
                         // 极值
                         // 正则表达式模式
-                        String patternString = "\\[([-+]?\\d+)\\|([-+]?\\d+)\\]";
+                        String patternString = "\\[([-+]?\\d+)\\|([-+]?\\d+)]";
 
                         // 编译正则表达式
                         Pattern pattern = Pattern.compile(patternString);
