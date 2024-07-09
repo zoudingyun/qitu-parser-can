@@ -33,7 +33,7 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
     /**
      * 消息集 （Messages, BO_）
      * */
-    private List<CanDbcMessage> messages;
+    private CanDbcMessages messages;
 
     /**
      * 自定义属性设定集
@@ -63,6 +63,14 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
 
     public void setNodes(CanDbcNodes nodes) {
         this.nodes = nodes;
+    }
+
+    public CanDbcMessages getMessages() {
+        return messages;
+    }
+
+    public void setMessages(CanDbcMessages messages) {
+        this.messages = messages;
     }
 
     /**
