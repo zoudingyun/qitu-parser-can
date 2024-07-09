@@ -27,6 +27,11 @@ import java.util.regex.Pattern;
 public class CanDbUtils {
 
     /**
+     * 文本类正则
+     * */
+    private static final String strRegex = "^\"(.*?)\"$";
+
+    /**
      * 分隔符
      */
     private static final String SPLIT_KEYWORD = " ";
@@ -48,7 +53,7 @@ public class CanDbUtils {
      * @param dbcFilePath 需要配解析的dbc文件路径
      * */
     public static CanDb createCanDb(String dbcFilePath) {
-        List<String> lines = new ArrayList<>();
+        List<String> lines;
         try {
             lines = Files.readAllLines(Paths.get(dbcFilePath));
             return createCanDb(lines);
@@ -83,9 +88,7 @@ public class CanDbUtils {
         // 遍历dbc文本行 (Traverse each line of text in the dbc file.)
         for (int i = 0; i < canDbcFileLines.size(); i++) {
             try {
-                if (StrUtils.isBlank(canDbcFileLines.get(i))) {
-                    continue;
-                }else {
+                if (!StrUtils.isBlank(canDbcFileLines.get(i))) {
                     if (partType != CanDbcPartType.UNKNOWN) {
                         // 当前是新数据项（第一个字符为非空字符），还是数据项内容（第一个字符为空字符）
                         if (StrUtils.isBlank(String.valueOf(canDbcFileLines.get(i).charAt(0)))) {
@@ -121,7 +124,7 @@ public class CanDbUtils {
     private static void analysisDbcPartContent(String canDbcFileLine, CanDbcProperties canDbcProperties, CanDbcPartType partType){
         switch (partType){
             case NEW_SYMBOLS:{
-                List<String> newSymbolList = canDbcProperties.getNewSymbols().getNewSymbols();
+                List<String> newSymbolList = canDbcProperties.getNewSymbols().getNewSymbolList();
                 if (newSymbolList == null || newSymbolList.isEmpty()) {
                     newSymbolList = new ArrayList<>();
                 }
@@ -132,7 +135,7 @@ public class CanDbUtils {
                         newSymbolList.add(arg);
                     }
                 }
-                canDbcProperties.getNewSymbols().setNewSymbols(newSymbolList);
+                canDbcProperties.getNewSymbols().setNewSymbolList(newSymbolList);
                 break;
             }
             default:{
@@ -150,7 +153,7 @@ public class CanDbUtils {
     private static CanDbcPartType analysisDbcPart(String canDbcFileLine, CanDbcProperties canDbcProperties){
         String[] args = canDbcFileLine.split(SPLIT_KEYWORD);
         String keyWord = null;
-        List<String> argValues = new ArrayList<String>();
+        List<String> argValues = new ArrayList<>();
         boolean keyWordReady = false;
         for (String arg : args) {
             if (!StrUtils.isBlank(arg)) {
@@ -174,29 +177,12 @@ public class CanDbUtils {
      * @param canDbcProperties dbc文件属性
      */
     private static CanDbcPartType createCanDbcPartByKeyWord(String keyWord, List<String> argValues, CanDbcProperties canDbcProperties) {
-        // 文本类
-        String strRegex = "^\"(.*?)\"$";
+
         CanDbcPartType canDbcPartType = CanDbcPartType.fromValue(keyWord);
         switch (canDbcPartType) {
             // 版本
             case VERSION:{
-                if (argValues.isEmpty()) {
-                    new CanDbcVersion("");
-                }else if (argValues.size() == 1) {
-                    Pattern pattern = Pattern.compile(strRegex);
-                    Matcher matcher = pattern.matcher(argValues.get(0));
-                    if (matcher.find()) {
-                        // group(1) 表示第一个括号中的匹配结果
-                        String match = matcher.group(1);
-                        canDbcProperties.setVersion(new CanDbcVersion(match));
-                    } else {
-                        throw new CanDbcFileFormatException("The value of \"VERSION\" must be an expression enclosed in double quotes.");
-                    }
-
-                }else {
-                    throw new CanDbcFileFormatException("The value of \"VERSION\" should not have multiple instances.");
-                }
-                break;
+                canDbcProperties.setVersion(formatVersion(argValues));
             }
             // 新节点
             case NEW_SYMBOLS:{
@@ -208,7 +194,7 @@ public class CanDbUtils {
                         newSymbolList.add(arg);
                     }
                 }
-                newSymbols.setNewSymbols(newSymbolList);
+                newSymbols.setNewSymbolList(newSymbolList);
                 canDbcProperties.setNewSymbols(newSymbols);
                 break;
             }
@@ -221,7 +207,7 @@ public class CanDbUtils {
             case NODES:{
                 CanDbcNodes nodes = new CanDbcNodes();
                 if (argValues.isEmpty()) {
-                    nodes.setNodes(new ArrayList<>());
+                    nodes.setNodeList(new ArrayList<>());
                 }else {
                     List<CanDbcNode> nodeList = new ArrayList<>();
                     for (String arg : argValues) {
@@ -230,7 +216,7 @@ public class CanDbUtils {
                             nodeList.add(new CanDbcNode(arg));
                         }
                     }
-                    nodes.setNodes(nodeList);
+                    nodes.setNodeList(nodeList);
                 }
                 canDbcProperties.setNodes(nodes);
                 break;
@@ -284,7 +270,7 @@ public class CanDbUtils {
                                 case 4:{
                                     // 此为发送器
                                     CanDbcNodes nodes = canDbcProperties.getNodes();
-                                    for (CanDbcNode node : nodes.getNodes()) {
+                                    for (CanDbcNode node : nodes.getNodeList()) {
                                         if (node.getName().equals(argValues.get(i))) {
                                             message.setTransmitter(node);
                                             break;
@@ -310,6 +296,29 @@ public class CanDbUtils {
             }
         }
         return canDbcPartType;
+    }
+
+    /**
+     * 分析出版本
+     * @param argValues 配置附带的参数
+     * @return 版本信息
+     * */
+    private static CanDbcVersion formatVersion(List<String> argValues){
+        if (argValues.isEmpty()) {
+            return new CanDbcVersion("");
+        }else if (argValues.size() == 1) {
+            Pattern pattern = Pattern.compile(strRegex);
+            Matcher matcher = pattern.matcher(argValues.get(0));
+            if (matcher.find()) {
+                // group(1) 表示第一个括号中的匹配结果
+                String match = matcher.group(1);
+                return new CanDbcVersion(match);
+            } else {
+                throw new CanDbcFileFormatException("The value of \"VERSION\" must be an expression enclosed in double quotes.");
+            }
+        }else {
+            throw new CanDbcFileFormatException("The value of \"VERSION\" should not have multiple instances.");
+        }
     }
 
 }

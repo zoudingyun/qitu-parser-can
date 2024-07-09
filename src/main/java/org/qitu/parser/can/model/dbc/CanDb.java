@@ -20,4 +20,8 @@ public class CanDb {
     public CanDb(CanDbcProperties canDbcProperties){
         this.canDbcProperties = canDbcProperties;
     }
+
+    public CanDbcProperties getCanDbcProperties() {
+        return canDbcProperties;
+    }
 }

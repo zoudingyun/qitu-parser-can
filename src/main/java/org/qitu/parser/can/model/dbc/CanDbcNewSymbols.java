@@ -18,19 +18,19 @@ public class CanDbcNewSymbols extends CanDbcPart {
      * <p>
      * 基本为固定内容
      * */
-    private List<String> newSymbols;
+    private List<String> newSymbolList;
 
-    public List<String> getNewSymbols() {
-        return newSymbols;
+    public List<String> getNewSymbolList() {
+        return newSymbolList;
     }
 
-    public void setNewSymbols(List<String> newSymbols) {
-        this.newSymbols = newSymbols;
+    public void setNewSymbolList(List<String> newSymbolList) {
+        this.newSymbolList = newSymbolList;
         setKeyword(CanDbcPartType.NEW_SYMBOLS.toString());
     }
 
     public void init() {
-        this.newSymbols = Arrays.asList(
+        this.newSymbolList = Arrays.asList(
                 "NS_DESC_",
                 "CM_",
                 "BA_DEF_",

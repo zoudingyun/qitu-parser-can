@@ -2,8 +2,14 @@ package org.qitu.parser.can.util;
 
 import org.junit.jupiter.api.Test;
 import org.qitu.parser.can.model.dbc.CanDb;
+import org.qitu.parser.can.model.dbc.CanDbcMessages;
 
+import java.math.BigInteger;
+import java.util.Arrays;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * CanDb工具类测试
@@ -17,6 +23,58 @@ public class CanDbUtilsTests {
     public void test(){
 
         CanDb db = CanDbUtils.createCanDb("D:\\test\\test.dbc");
+
+        // 版本
+        assertEquals(db.getCanDbcProperties().getVersion().getVersion(),"");
+        assertEquals(db.getCanDbcProperties().getVersion().getKeyword(),"VERSION");
+
+        // 新节点
+        String raw = "NS_DESC_\n" +
+                "\tCM_\n" +
+                "\tBA_DEF_\n" +
+                "\tBA_\n" +
+                "\tVAL_\n" +
+                "\tCAT_DEF_\n" +
+                "\tCAT_\n" +
+                "\tFILTER\n" +
+                "\tBA_DEF_DEF_\n" +
+                "\tEV_DATA_\n" +
+                "\tENVVAR_DATA_\n" +
+                "\tSGTYPE_\n" +
+                "\tSGTYPE_VAL_\n" +
+                "\tBA_DEF_SGTYPE_\n" +
+                "\tBA_SGTYPE_\n" +
+                "\tSIG_TYPE_REF_\n" +
+                "\tVAL_TABLE_\n" +
+                "\tSIG_GROUP_\n" +
+                "\tSIG_VALTYPE_\n" +
+                "\tSIGTYPE_VALTYPE_\n" +
+                "\tBO_TX_BU_\n" +
+                "\tBA_DEF_REL_\n" +
+                "\tBA_REL_\n" +
+                "\tBA_DEF_DEF_REL_\n" +
+                "\tBU_SG_REL_\n" +
+                "\tBU_EV_REL_\n" +
+                "\tBU_BO_REL_\n" +
+                "\tSG_MUL_VAL_";
+        List<String> newSymbolList = Arrays.asList(raw.split("\n\t"));
+        assertArrayEquals(db.getCanDbcProperties().getNewSymbols().getNewSymbolList().toArray(new String[0]), newSymbolList.toArray(new String[0]));
+
+        // 节点
+        String[] rawNodes = "Receiver ChassisBus VehicleBus PartyBus".split(" ");
+        for (int i = 0; i < db.getCanDbcProperties().getNodes().getNodeList().size(); i++) {
+            assertEquals(db.getCanDbcProperties().getNodes().getNodeList().get(i).getName(),rawNodes[i]);
+        }
+
+        // 消息
+        CanDbcMessages messages = db.getCanDbcProperties().getMessages();
+        assertEquals(messages.getMessageList().get(0).getMessageId(),new BigInteger("12"));
+        assertEquals(messages.getMessageList().get(0).getMessageName(),"ID00CUI_status");
+        assertEquals(messages.getMessageList().get(0).getMessageSize(),8);
+        assertEquals(messages.getMessageList().get(0).getTransmitter().getName(),"VehicleBus");
+
+
+
         int a = 0;
 
     }

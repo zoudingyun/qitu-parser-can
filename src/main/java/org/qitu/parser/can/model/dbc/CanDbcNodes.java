@@ -15,17 +15,17 @@ public class CanDbcNodes extends CanDbcPart{
     /**
      * 节点名（node_name）
      * */
-    private List<CanDbcNode> nodes;
+    private List<CanDbcNode> nodeList;
 
     public CanDbcNodes() {
         this.setKeyword(CanDbcPartType.NODES.name);
     }
 
-    public List<CanDbcNode> getNodes() {
-        return nodes;
+    public List<CanDbcNode> getNodeList() {
+        return nodeList;
     }
 
-    public void setNodes(List<CanDbcNode> nodes) {
-        this.nodes = nodes;
+    public void setNodeList(List<CanDbcNode> nodeList) {
+        this.nodeList = nodeList;
     }
 }
