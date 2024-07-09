@@ -1,7 +1,6 @@
 package org.qitu.parser.can.model.dbc;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -77,6 +76,45 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
             this.attributeDefinitions = new ArrayList<CanDbcAttributeDefinition>();
         }
         this.attributeDefinitions.add(attributeDefinition);
+    }
+
+    /**
+     * 更新一个属性的定义
+     *
+     * @param attributeDefinition 定义信息
+     */
+    @Override
+    public void updateAttributeDefinition(CanDbcAttributeDefinition attributeDefinition) {
+        if (this.attributeDefinitions != null){
+            // 使用 Iterator 进行遍历和删除
+            Iterator<CanDbcAttributeDefinition> iterator = this.attributeDefinitions.iterator();
+            while (iterator.hasNext()) {
+                CanDbcAttributeDefinition element = iterator.next();
+                if (attributeDefinition.getAttributeName().equals(element.getAttributeName())) {
+                    iterator.remove();
+                    this.attributeDefinitions.add(attributeDefinition);
+                    break;
+                }
+            }
+        }
+    }
+
+    /**
+     * 查询一个自定义属性的定义
+     *
+     * @param canDbcAttributeName 属性名称
+     * @return 查询到的属性定义
+     */
+    @Override
+    public CanDbcAttributeDefinition loadAttributeDefinitionByName(String canDbcAttributeName) {
+        if (this.attributeDefinitions != null){
+            for (CanDbcAttributeDefinition element : this.attributeDefinitions) {
+                if (canDbcAttributeName.equals(element.getAttributeName())) {
+                    return element;
+                }
+            }
+        }
+        return null;
     }
 
     /**

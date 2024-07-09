@@ -17,6 +17,19 @@ public interface CanDbcAttributeCreator {
     void addAttributeDefinition(CanDbcAttributeDefinition attributeDefinition);
 
     /**
+     * 更新一个属性的定义
+     * @param attributeDefinition 定义信息
+     * */
+    void updateAttributeDefinition(CanDbcAttributeDefinition attributeDefinition);
+
+    /**
+     * 查询一个自定义属性的定义
+     * @param canDbcAttributeName 属性名称
+     * @return 查询到的属性定义
+     * */
+    CanDbcAttributeDefinition loadAttributeDefinitionByName(String canDbcAttributeName);
+
+    /**
      * 删除一个自定义属性的定义
      * @param canDbcAttributeName 属性名称
      * */
