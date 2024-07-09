@@ -5,7 +5,6 @@ import org.qitu.parser.core.util.StrUtils;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -139,6 +138,9 @@ public class CanDbcMessage implements CanDbcAttributeCreator{
     }
 
     public List<CanDbcSignal> getSignalList() {
+        if (this.signalList == null){
+            this.signalList = new ArrayList<>();
+        }
         return signalList;
     }
 

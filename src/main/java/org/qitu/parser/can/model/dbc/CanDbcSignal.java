@@ -1,5 +1,6 @@
 package org.qitu.parser.can.model.dbc;
 
+import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
 import org.qitu.parser.can.model.dbc.enums.CanDbcSignalMultiplexerType;
 
 import java.math.BigDecimal;
@@ -13,6 +14,10 @@ import java.util.List;
  */
 public class CanDbcSignal extends CanDbcPart {
 
+    public CanDbcSignal() {
+        setKeyword(CanDbcPartType.SIGNAL.name);
+    }
+
     /**
      * 信号名（SignalName）
      * */
@@ -21,7 +26,7 @@ public class CanDbcSignal extends CanDbcPart {
     /**
      * 多路复用器类型（multiplexerType）
      * */
-    private CanDbcSignalMultiplexerType multiplexerType;
+    private CanDbcSignalMultiplexerType multiplexerIndicator;
 
     /**
      * 多路复用器设定的开关值（multiplexed switch value）
@@ -73,20 +78,20 @@ public class CanDbcSignal extends CanDbcPart {
     /**
      * 数据模式 (byte order mode)
      * <p>
-     * true: big endian <br>
-     * false: little endian
+     * true: (Motorola)big endian <br>
+     * false: (intel)little endian
      * </p>
      * */
-    private Boolean bigEndianMode;
+    private Boolean byteOrder;
 
     /**
      * 数据类型 (signed or unsigned)
      * <p>
-     * true: signed <br>
-     * false: unsigned
+     * true: unsigned <br>
+     * false: signed
      * </p>
      * */
-    private Boolean signed;
+    private Boolean valueType;
 
     /**
      * 系数 (coefficient)
@@ -94,7 +99,7 @@ public class CanDbcSignal extends CanDbcPart {
      * real_value =  can_value × coefficient
      * </p>
      * */
-    private BigDecimal coefficient;
+    private BigDecimal factor;
 
     /**
      * 偏移量 (offset)
@@ -120,12 +125,12 @@ public class CanDbcSignal extends CanDbcPart {
     private String unit;
 
     /**
-     * 网络节点名 (unit desc)
+     * 接收器网络节点名 (receiver)
      * <p>
      * default：Vector__XXX
      * </p>
      * */
-    private String transmitter;
+    private CanDbcNode receiver;
 
 
     public String getSignalName() {
@@ -136,12 +141,12 @@ public class CanDbcSignal extends CanDbcPart {
         this.signalName = signalName;
     }
 
-    public CanDbcSignalMultiplexerType getMultiplexerType() {
-        return multiplexerType;
+    public CanDbcSignalMultiplexerType getMultiplexerIndicator() {
+        return multiplexerIndicator;
     }
 
-    public void setMultiplexerType(CanDbcSignalMultiplexerType multiplexerType) {
-        this.multiplexerType = multiplexerType;
+    public void setMultiplexerIndicator(CanDbcSignalMultiplexerType multiplexerIndicator) {
+        this.multiplexerIndicator = multiplexerIndicator;
     }
 
     public Integer getSwitchValue() {
@@ -176,28 +181,28 @@ public class CanDbcSignal extends CanDbcPart {
         this.signalSize = signalSize;
     }
 
-    public Boolean getBigEndianMode() {
-        return bigEndianMode;
+    public Boolean getByteOrder() {
+        return byteOrder;
     }
 
-    public void setBigEndianMode(Boolean bigEndianMode) {
-        this.bigEndianMode = bigEndianMode;
+    public void setByteOrder(Boolean byteOrder) {
+        this.byteOrder = byteOrder;
     }
 
-    public Boolean getSigned() {
-        return signed;
+    public Boolean getValueType() {
+        return valueType;
     }
 
-    public void setSigned(Boolean signed) {
-        this.signed = signed;
+    public void setValueType(Boolean valueType) {
+        this.valueType = valueType;
     }
 
-    public BigDecimal getCoefficient() {
-        return coefficient;
+    public BigDecimal getFactor() {
+        return factor;
     }
 
-    public void setCoefficient(BigDecimal coefficient) {
-        this.coefficient = coefficient;
+    public void setFactor(BigDecimal factor) {
+        this.factor = factor;
     }
 
     public BigDecimal getOffset() {
@@ -232,11 +237,11 @@ public class CanDbcSignal extends CanDbcPart {
         this.unit = unit;
     }
 
-    public String getTransmitter() {
-        return transmitter;
+    public CanDbcNode getReceiver() {
+        return receiver;
     }
 
-    public void setTransmitter(String transmitter) {
-        this.transmitter = transmitter;
+    public void setReceiver(CanDbcNode receiver) {
+        this.receiver = receiver;
     }
 }

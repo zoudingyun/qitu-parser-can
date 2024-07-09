@@ -4,9 +4,11 @@ import org.qitu.parser.can.exceptions.CanDbcException;
 import org.qitu.parser.can.exceptions.CanDbcFileFormatException;
 import org.qitu.parser.can.model.dbc.*;
 import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
+import org.qitu.parser.can.model.dbc.enums.CanDbcSignalMultiplexerType;
 import org.qitu.parser.core.util.StrUtils;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -29,7 +31,7 @@ public class CanDbUtils {
     /**
      * 文本类正则
      * */
-    private static final String strRegex = "^\"(.*?)\"$";
+    private static final String STR_REGEX = "^\"(.*?)\"$";
 
     /**
      * 分隔符
@@ -122,25 +124,219 @@ public class CanDbUtils {
      * @param partType 当前正在分析的数据项类型
      * */
     private static void analysisDbcPartContent(String canDbcFileLine, CanDbcProperties canDbcProperties, CanDbcPartType partType){
+        List<String> args = new ArrayList<>();
+        for (String arg: canDbcFileLine.split(SPLIT_KEYWORD)) {
+            if (!StrUtils.isBlank(arg)) {
+                args.add(arg);
+            }
+        }
         switch (partType){
             case NEW_SYMBOLS:{
-                List<String> newSymbolList = canDbcProperties.getNewSymbols().getNewSymbolList();
-                if (newSymbolList == null || newSymbolList.isEmpty()) {
-                    newSymbolList = new ArrayList<>();
-                }
-                String[] args = StrUtils.trim(canDbcFileLine).split(SPLIT_KEYWORD);
-                for (String arg : args) {
-                    arg = StrUtils.trim(arg);
-                    if (!StrUtils.isBlank(arg)){
-                        newSymbolList.add(arg);
+                canDbcProperties.setNewSymbols(formatNewSymbols(canDbcFileLine,canDbcProperties));
+                break;
+            }
+            case MESSAGE:{
+                if (!args.isEmpty()) {
+                    CanDbcMessages messages = canDbcProperties.getMessages();
+                    if (messages == null){
+                        messages = new CanDbcMessages();
                     }
+                    CanDbcMessage message = messages.getMessageList().get(messages.getMessageList().size()-1);
+                    message.getSignalList().add(formatSignal(args,canDbcProperties));
+                    messages.getMessageList().set(messages.getMessageList().size()-1,message);
                 }
-                canDbcProperties.getNewSymbols().setNewSymbolList(newSymbolList);
                 break;
             }
             default:{
-                throw new CanDbcFileFormatException("format error");
+                throw new CanDbcFileFormatException("format error.");
             }
+        }
+    }
+
+    /**
+     * 分析新节点
+     * @param canDbcFileLine 文本行
+     * @param canDbcProperties 定义集
+     * @return 新节点信息
+     * */
+    private static CanDbcNewSymbols formatNewSymbols(String canDbcFileLine,CanDbcProperties canDbcProperties){
+        List<String> newSymbolList = canDbcProperties.getNewSymbols().getNewSymbolList();
+        if (newSymbolList == null || newSymbolList.isEmpty()) {
+            newSymbolList = new ArrayList<>();
+        }
+        String[] args = StrUtils.trim(canDbcFileLine).split(SPLIT_KEYWORD);
+        for (String arg : args) {
+            arg = StrUtils.trim(arg);
+            if (!StrUtils.isBlank(arg)){
+                newSymbolList.add(arg);
+            }
+        }
+        CanDbcNewSymbols newSymbols = canDbcProperties.getNewSymbols();
+        newSymbols.setNewSymbolList(newSymbolList);
+        return newSymbols;
+    }
+
+
+    /**
+     * 分析信号
+     * @param args 参数集
+     * @return 信号
+     * */
+    private static CanDbcSignal formatSignal(List<String> args,CanDbcProperties canDbcProperties){
+        if (args.get(0).equals(CanDbcPartType.SIGNAL.name)) {
+            if (TITLE_SPLIT_KEYWORD.equals(args.get(2))) {
+                // 补齐默认类型
+                args.add(2,CanDbcSignalMultiplexerType.SIGNAL.name);
+            }
+            CanDbcSignal signal = new CanDbcSignal();
+
+            for (int i = 1; i < args.size(); i++) {
+                switch (i) {
+                    case 1:{
+                        // 信号名
+                        signal.setSignalName(args.get(i));
+                        break;
+                    }
+                    case 2:{
+                        // 信号类型
+                        signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue(args.get(i)));
+                        break;
+                    }
+                    case 4:{
+                        // 开始位置 | （信号长度@大小端类型、值类型）
+                        // 正则表达式模式
+                        String patternString = "(\\d+)\\|(\\d+)@([01])([-+])";
+
+                        // 编译正则表达式
+                        Pattern pattern = Pattern.compile(patternString);
+
+                        // 创建匹配器
+                        Matcher matcher = pattern.matcher(args.get(i));
+                        // 进行匹配
+                        if (matcher.find()) {
+                            // 开始位置 | （信号长度@大小端类型、值类型）
+                            try {
+                                signal.setStartBit(Integer.parseInt(matcher.group(1)));
+                                signal.setSignalSize(Integer.parseInt(matcher.group(2)));
+                                // 大小端
+                                if ("1".equals(matcher.group(3))){
+                                    signal.setByteOrder(true);
+                                }else if ("0".equals(matcher.group(3))){
+                                    signal.setByteOrder(false);
+                                }else {
+                                    throw new CanDbcFileFormatException("An error occurred while formatting 'signal::byte_order'.");
+                                }
+                                // 值类型
+                                if ("+".equals(matcher.group(4))){
+                                    signal.setValueType(true);
+                                }else if ("-".equals(matcher.group(4))){
+                                    signal.setValueType(false);
+                                }else {
+                                    throw new CanDbcFileFormatException("An error occurred while formatting 'signal::value_type'.");
+                                }
+
+                            }catch (Exception ex){
+                                throw new CanDbcFileFormatException("An error occurred while formatting 'signal':",ex);
+                            }
+                        } else {
+                            throw new CanDbcFileFormatException("An error occurred while formatting 'signal::start_bit'.");
+                        }
+                        break;
+                    }
+                    case 5:{
+                        // 系数和偏移量
+                        // 正则表达式模式
+                        String patternString = "\\(([-+]?\\d+),([-+]?\\d+)\\)";
+
+                        // 编译正则表达式
+                        Pattern pattern = Pattern.compile(patternString);
+
+                        // 创建匹配器
+                        Matcher matcher = pattern.matcher(args.get(i));
+
+                        // 进行匹配
+                        if (matcher.find()) {
+                            // 提取系数和偏移量
+                            try {
+                                signal.setFactor(new BigDecimal(matcher.group(1)));
+                                signal.setOffset(new BigDecimal(matcher.group(2)));
+                            }catch (Exception ex){
+                                throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: factor&offset':",ex);
+                            }
+                        } else {
+                            throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: factor&offset'.");
+                        }
+
+                        break;
+                    }
+                    case 6:{
+                        // 极值
+                        // 正则表达式模式
+                        String patternString = "\\[([-+]?\\d+)\\|([-+]?\\d+)\\]";
+
+                        // 编译正则表达式
+                        Pattern pattern = Pattern.compile(patternString);
+
+                        // 创建匹配器
+                        Matcher matcher = pattern.matcher(args.get(i));
+
+                        // 进行匹配
+                        if (matcher.find()) {
+                            // 提取极值
+                            try {
+                                signal.setMaxValue(new BigDecimal(matcher.group(2)));
+                                signal.setMinValue(new BigDecimal(matcher.group(1)));
+                            }catch (Exception ex){
+                                throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: maximum&minimum':",ex);
+                            }
+                        } else {
+                            throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: maximum&minimum'.");
+                        }
+
+                        break;
+                    }
+                    case 7:{
+                        // 单位
+                        // 编译正则表达式
+                        Pattern pattern = Pattern.compile(STR_REGEX);
+
+                        // 创建匹配器
+                        Matcher matcher = pattern.matcher(args.get(i));
+                        if (matcher.find()) {
+                            // 提取单位
+                            try {
+                                signal.setUnit(matcher.group(1));
+                            }catch (Exception ex){
+                                throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: maximum&unit':",ex);
+                            }
+                        }else {
+                            throw new CanDbcFileFormatException("An error occurred while formatting 'signal:: unit'.");
+                        }
+
+                        break;
+                    }
+                    case 8:{
+                        // 接收器
+                        if (DEFAULT_TRANSMITTER.getName().equals(args.get(i))) {
+                            signal.setReceiver(DEFAULT_TRANSMITTER);
+                        }else {
+                            for (CanDbcNode node:canDbcProperties.getNodes().getNodeList()){
+                                if (node.getName().equals(args.get(i))){
+                                    signal.setReceiver(node);
+                                }
+                            }
+                        }
+                        if (signal.getReceiver() == null) {
+                            throw new CanDbcFileFormatException(String.format("An error occurred while formatting 'signal:: receiver': receiver node '%s' undefined.",args.get(i)));
+                        }
+                        break;
+                    }
+                }
+            }
+
+            return signal;
+        }else {
+            throw new CanDbcFileFormatException(String.format("Unknown keyword:'%s'.", args.get(0)));
         }
     }
 
@@ -218,7 +414,7 @@ public class CanDbUtils {
         if (argValues.isEmpty()) {
             return new CanDbcVersion("");
         }else if (argValues.size() == 1) {
-            Pattern pattern = Pattern.compile(strRegex);
+            Pattern pattern = Pattern.compile(STR_REGEX);
             Matcher matcher = pattern.matcher(argValues.get(0));
             if (matcher.find()) {
                 // group(1) 表示第一个括号中的匹配结果

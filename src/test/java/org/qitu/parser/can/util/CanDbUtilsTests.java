@@ -3,7 +3,10 @@ package org.qitu.parser.can.util;
 import org.junit.jupiter.api.Test;
 import org.qitu.parser.can.model.dbc.CanDb;
 import org.qitu.parser.can.model.dbc.CanDbcMessages;
+import org.qitu.parser.can.model.dbc.CanDbcSignal;
+import org.qitu.parser.can.model.dbc.enums.CanDbcSignalMultiplexerType;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
@@ -44,6 +47,21 @@ public class CanDbUtilsTests {
         assertEquals(messages.getMessageList().get(0).getMessageName(),"ID00CUI_status");
         assertEquals(messages.getMessageList().get(0).getMessageSize(),8);
         assertEquals(messages.getMessageList().get(0).getTransmitter().getName(),"VehicleBus");
+
+        // 信号
+        List<CanDbcSignal> signals = messages.getMessageList().get(0).getSignalList();
+        assertEquals(signals.get(0).getSignalName(),"UI_audioActive");
+        assertEquals(signals.get(1).getMultiplexerIndicator(), CanDbcSignalMultiplexerType.SIGNAL);
+        assertEquals(signals.get(2).getStartBit(),2);
+        assertEquals(signals.get(3).getSignalSize(),1);
+        assertEquals(signals.get(4).getByteOrder(),true);
+        assertEquals(signals.get(5).getValueType(),true);
+        assertEquals(signals.get(6).getFactor(),new BigDecimal("1"));
+        assertEquals(signals.get(7).getOffset(),new BigDecimal("-128"));
+        assertEquals(signals.get(8).getMinValue(),new BigDecimal("0"));
+        assertEquals(signals.get(9).getMaxValue(),new BigDecimal("100"));
+        assertEquals(signals.get(10).getUnit(),"w");
+        assertEquals(signals.get(11).getReceiver().getName(),"Receiver");
 
 
 

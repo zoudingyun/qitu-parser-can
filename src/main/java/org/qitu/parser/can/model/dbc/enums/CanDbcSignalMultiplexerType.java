@@ -43,6 +43,15 @@ public enum CanDbcSignalMultiplexerType {
         this.name = name;
     }
 
+    public static CanDbcSignalMultiplexerType fromValue(String value) {
+        for (CanDbcSignalMultiplexerType type : CanDbcSignalMultiplexerType.values()) {
+            if (type.toString().equals(value)) {
+                return type;
+            }
+        }
+        throw new IllegalArgumentException("Unknown value: " + value);
+    }
+
     @Override
     public String toString() {
         return this.name;
