@@ -13,6 +13,7 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -87,6 +88,7 @@ public class CanDbUtils {
         CanDbcProperties canDbcProperties = new CanDbcProperties();
 
         CanDbcPartType partType = CanDbcPartType.UNKNOWN;
+        CanDbcSignal multiplexerSwitch = null;
         // 遍历dbc文本行 (Traverse each line of text in the dbc file.)
         for (int i = 0; i < canDbcFileLines.size(); i++) {
             try {
@@ -94,8 +96,9 @@ public class CanDbUtils {
                     if (partType != CanDbcPartType.UNKNOWN) {
                         // 当前是新数据项（第一个字符为非空字符），还是数据项内容（第一个字符为空字符）
                         if (StrUtils.isBlank(String.valueOf(canDbcFileLines.get(i).charAt(0)))) {
-                            analysisDbcPartContent(canDbcFileLines.get(i),canDbcProperties,partType);
+                            multiplexerSwitch = analysisDbcPartContent(canDbcFileLines.get(i),canDbcProperties,partType,multiplexerSwitch);
                         }else {
+                            multiplexerSwitch = null;
                             partType = analysisDbcPart(canDbcFileLines.get(i),canDbcProperties);
                         }
                     }else {
@@ -121,9 +124,11 @@ public class CanDbUtils {
      * 分析数据项的内容
      * @param canDbcFileLine dbc文件行
      * @param canDbcProperties dbc文件属性
+     * @param multiplexerSwitch 信号多路复用器开关
      * @param partType 当前正在分析的数据项类型
+     * @return 信号多路复用器开关(如果当前分析的信号是复用器开关则返回，其它情况返回原始传入的复用器开关信号)
      * */
-    private static void analysisDbcPartContent(String canDbcFileLine, CanDbcProperties canDbcProperties, CanDbcPartType partType){
+    private static CanDbcSignal analysisDbcPartContent(String canDbcFileLine, CanDbcProperties canDbcProperties, CanDbcPartType partType,CanDbcSignal multiplexerSwitch){
         List<String> args = new ArrayList<>();
         for (String arg: canDbcFileLine.split(SPLIT_KEYWORD)) {
             if (!StrUtils.isBlank(arg)) {
@@ -133,7 +138,7 @@ public class CanDbUtils {
         switch (partType){
             case NEW_SYMBOLS:{
                 canDbcProperties.setNewSymbols(formatNewSymbols(canDbcFileLine,canDbcProperties));
-                break;
+                return multiplexerSwitch;
             }
             case MESSAGE:{
                 if (!args.isEmpty()) {
@@ -142,13 +147,18 @@ public class CanDbUtils {
                         messages = new CanDbcMessages();
                     }
                     CanDbcMessage message = messages.getMessageList().get(messages.getMessageList().size()-1);
-                    message.getSignalList().add(formatSignal(args,canDbcProperties));
-                    messages.getMessageList().set(messages.getMessageList().size()-1,message);
+                    List<CanDbcSignal> signals = formatSignal(args,canDbcProperties,multiplexerSwitch);
+                    if (signals.get(0).getMultiplexerIndicator() != CanDbcSignalMultiplexerType.MULTIPLEXED){
+                        message.getSignalList().add(signals.get(0));
+                        messages.getMessageList().set(messages.getMessageList().size()-1,message);
+                    }
+                    return signals.get(1);
+                }else {
+                    throw new CanDbcFileFormatException("The args of signal can't be empty");
                 }
-                break;
             }
             default:{
-                throw new CanDbcFileFormatException("format error.");
+                throw new CanDbcFileFormatException("Format error.");
             }
         }
     }
@@ -180,15 +190,19 @@ public class CanDbUtils {
     /**
      * 分析信号
      * @param args 参数集
-     * @return 信号
+     * @param multiplexerSwitch 信号多路复用器开关
+     * @return 信号及多路复用开关
      * */
-    private static CanDbcSignal formatSignal(List<String> args,CanDbcProperties canDbcProperties){
+    private static List<CanDbcSignal> formatSignal(List<String> args,CanDbcProperties canDbcProperties,CanDbcSignal multiplexerSwitch){
         if (args.get(0).equals(CanDbcPartType.SIGNAL.name)) {
             if (TITLE_SPLIT_KEYWORD.equals(args.get(2))) {
                 // 补齐默认类型
                 args.add(2,CanDbcSignalMultiplexerType.SIGNAL.name);
             }
-            CanDbcSignal signal = new CanDbcSignal();
+
+            // 0-本信号 1-开关信号
+            List<CanDbcSignal> signals = Arrays.asList(new CanDbcSignal(),multiplexerSwitch);
+            CanDbcSignal signal = signals.get(0);
 
             for (int i = 1; i < args.size(); i++) {
                 switch (i) {
@@ -199,7 +213,20 @@ public class CanDbUtils {
                     }
                     case 2:{
                         // 信号类型
-                        signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue(args.get(i)));
+                        if (args.get(i).indexOf('m') == 0) {
+                            signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue("m"));
+                            multiplexerSwitch.getMultiplexedSignals().add(signal);
+                        }else {
+                            signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue(args.get(i)));
+                            if (signal.getMultiplexerIndicator() == CanDbcSignalMultiplexerType.MULTIPLEXER){
+                                if (multiplexerSwitch == null){
+                                    multiplexerSwitch = signal;
+                                    signals.set(1,multiplexerSwitch);
+                                }else {
+                                    throw new CanDbcFileFormatException("too many multiplexers switch for signal.");
+                                }
+                            }
+                        }
                         break;
                     }
                     case 4:{
@@ -246,7 +273,7 @@ public class CanDbUtils {
                     case 5:{
                         // 系数和偏移量
                         // 正则表达式模式
-                        String patternString = "\\(([-+]?\\d+),([-+]?\\d+)\\)";
+                        String patternString = "\\(([-+]?\\d+\\.?\\d*),([-+]?\\d+\\.?\\d*)\\)";
 
                         // 编译正则表达式
                         Pattern pattern = Pattern.compile(patternString);
@@ -334,7 +361,7 @@ public class CanDbUtils {
                 }
             }
 
-            return signal;
+            return signals;
         }else {
             throw new CanDbcFileFormatException(String.format("Unknown keyword:'%s'.", args.get(0)));
         }

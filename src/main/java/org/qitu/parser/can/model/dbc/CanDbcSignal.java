@@ -4,6 +4,7 @@ import org.qitu.parser.can.model.dbc.enums.CanDbcPartType;
 import org.qitu.parser.can.model.dbc.enums.CanDbcSignalMultiplexerType;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -158,6 +159,9 @@ public class CanDbcSignal extends CanDbcPart {
     }
 
     public List<CanDbcSignal> getMultiplexedSignals() {
+        if (multiplexedSignals == null) {
+            multiplexedSignals = new ArrayList<>();
+        }
         return multiplexedSignals;
     }
 

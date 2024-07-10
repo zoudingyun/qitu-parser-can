@@ -11,7 +11,7 @@ public enum CanDbcSignalMultiplexerType {
     /**
      * 普通信号（signal）
      * */
-    SIGNAL("signal"),
+    SIGNAL(""),
 
     /**
      * 多路复用器开关（multiplexer switch）
@@ -23,7 +23,7 @@ public enum CanDbcSignalMultiplexerType {
      * single message can be the multiplexer switch.
      * </p>
      * */
-    MULTIPLEXER("multiplexer"),
+    MULTIPLEXER("M"),
 
     /**
      * 多路复用信号（multiplexed）
@@ -35,7 +35,7 @@ public enum CanDbcSignalMultiplexerType {
      * the multiplexer signal is equal to its multiplexer_switch_value.
      * </p>
      * */
-    MULTIPLEXED("multiplexed");
+    MULTIPLEXED("m");
 
     public final String name;
 
