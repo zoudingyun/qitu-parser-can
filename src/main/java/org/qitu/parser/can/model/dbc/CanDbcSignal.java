@@ -5,7 +5,9 @@ import org.qitu.parser.can.model.dbc.enums.CanDbcSignalMultiplexerType;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 信号 （Signal）
@@ -29,28 +31,18 @@ public class CanDbcSignal extends CanDbcPart {
      * */
     private CanDbcSignalMultiplexerType multiplexerIndicator;
 
-    /**
-     * 多路复用器设定的开关值（multiplexed switch value）
-     * <p>
-     * 当多路复用器类型为 multiplexed 时为必填项
-     * </p>
-     * <p>
-     * enable this value when this term is a multiplexed signal
-     * </p>
-     * */
-    private Integer switchValue;
 
 
     /**
      * 多路复用器信号 （multiplexed signals）
      * <p>
-     * 当本信号为多路复用器开关信号时，此项包含属于它的多路复用器信号
+     * 当本信号为多路复用器开关信号时，此项包含属于它的多路复用器信号,key为信号匹配的开关值
      * </p>
      * <p>
      * If this signal is a multiplexer signal,its multiplexed signals will be here
      * </p>
      * */
-    private List<CanDbcSignal> multiplexedSignals;
+    private Map<String,List<CanDbcSignal>> multiplexedSignalMap;
 
     /**
      * 信号起始位 （start_bit）
@@ -150,23 +142,21 @@ public class CanDbcSignal extends CanDbcPart {
         this.multiplexerIndicator = multiplexerIndicator;
     }
 
-    public Integer getSwitchValue() {
-        return switchValue;
-    }
-
-    public void setSwitchValue(Integer switchValue) {
-        this.switchValue = switchValue;
-    }
-
-    public List<CanDbcSignal> getMultiplexedSignals() {
-        if (multiplexedSignals == null) {
-            multiplexedSignals = new ArrayList<>();
+    public List<CanDbcSignal> getMultiplexedSignalListBySwitchValue(String switchValue) {
+        if (multiplexedSignalMap == null) {
+            multiplexedSignalMap = new HashMap<>();
         }
-        return multiplexedSignals;
+        return multiplexedSignalMap.get(switchValue);
     }
 
-    public void setMultiplexedSignals(List<CanDbcSignal> multiplexedSignals) {
-        this.multiplexedSignals = multiplexedSignals;
+    public void setMultiplexedSignalBySwitchValue(String switchValue, CanDbcSignal signal) {
+        if (multiplexedSignalMap == null) {
+            multiplexedSignalMap = new HashMap<>();
+        }
+        if (!multiplexedSignalMap.containsKey(switchValue)) {
+            multiplexedSignalMap.put(switchValue, new ArrayList<>());
+        }
+        multiplexedSignalMap.get(switchValue).add(signal);
     }
 
     public Integer getStartBit() {

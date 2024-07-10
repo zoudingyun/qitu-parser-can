@@ -214,11 +214,13 @@ public class CanDbUtils {
                     case 2:{
                         // 信号类型
                         if (args.get(i).indexOf('m') == 0) {
+                            // 多路复用器
                             signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue("m"));
-                            multiplexerSwitch.getMultiplexedSignals().add(signal);
+                            multiplexerSwitch.setMultiplexedSignalBySwitchValue(args.get(i).substring(1),signal);
                         }else {
                             signal.setMultiplexerIndicator(CanDbcSignalMultiplexerType.fromValue(args.get(i)));
                             if (signal.getMultiplexerIndicator() == CanDbcSignalMultiplexerType.MULTIPLEXER){
+                                // 多路复用器开关
                                 if (multiplexerSwitch == null){
                                     multiplexerSwitch = signal;
                                     signals.set(1,multiplexerSwitch);
