@@ -88,6 +88,7 @@ public class CanDbUtils {
         CanDbcProperties canDbcProperties = new CanDbcProperties();
 
         CanDbcPartType partType = CanDbcPartType.UNKNOWN;
+        // 多路复用开关信号（一个 message中最多存在一个多路复用开关信号）
         CanDbcSignal multiplexerSwitch = null;
         // 遍历dbc文本行 (Traverse each line of text in the dbc file.)
         for (int i = 0; i < canDbcFileLines.size(); i++) {
@@ -191,7 +192,7 @@ public class CanDbUtils {
      * 分析信号
      * @param args 参数集
      * @param multiplexerSwitch 信号多路复用器开关
-     * @return 信号及多路复用开关
+     * @return 信号及多路复用开关 0-本信号 1-开关信号
      * */
     private static List<CanDbcSignal> formatSignal(List<String> args,CanDbcProperties canDbcProperties,CanDbcSignal multiplexerSwitch){
         if (args.get(0).equals(CanDbcPartType.SIGNAL.name)) {
@@ -430,6 +431,11 @@ public class CanDbUtils {
                 canDbcProperties.setMessages(formatMessages(argValues,canDbcProperties));
                 break;
             }
+            // 消息发送器
+            case MESSAGE_TRANSMITTER:{
+                formatExtraTransmitters(argValues,canDbcProperties);
+                break;
+            }
         }
         return canDbcPartType;
     }
@@ -574,6 +580,51 @@ public class CanDbUtils {
         }
         messages.getMessageList().add(message);
         return messages;
+    }
+
+
+    /**
+     * 分析额外的消息发送器
+     * @param argValues 配置附带的参数
+     * @param canDbcProperties dbc信息集
+     * */
+    private static void formatExtraTransmitters(List<String> argValues, CanDbcProperties canDbcProperties){
+        if (argValues.size() < 3) {
+            throw new CanDbcFileFormatException("Wrong number of parameters.");
+        }
+        boolean rightMessageId = false;
+        List<CanDbcMessage> messageList = canDbcProperties.getMessages().getMessageList();
+        for (CanDbcMessage canDbcMessage: messageList) {
+            // 匹配消息id
+            if (canDbcMessage.getMessageId().compareTo(new BigInteger(argValues.get(0)))==0){
+                rightMessageId = true;
+                if (TITLE_SPLIT_KEYWORD.equals(argValues.get(1))){
+                    if (argValues.get(2).endsWith(";")){
+                        String[] nodeNames = argValues.get(2).replace(";","").split(",");
+                        for (String nodeName : nodeNames) {
+                            boolean rightNodeName = false;
+                            for (CanDbcNode node:canDbcProperties.getNodes().getNodeList()){
+                                if (node.getName().equals(nodeName)){
+                                    rightNodeName = true;
+                                    canDbcMessage.addExtraTransmitter(node);
+                                }
+                            }
+                            if (!rightNodeName){
+                                throw new CanDbcFileFormatException(String.format("Unknown node:'%s'.",nodeName));
+                            }
+                        }
+                    }else {
+                        throw new CanDbcFileFormatException(String.format("Wrong parameter '%s'.",argValues.get(2)));
+                    }
+                }else {
+                    throw new CanDbcFileFormatException(String.format("Wrong parameter '%s'.",argValues.get(1)));
+                }
+                break;
+            }
+        }
+        if (!rightMessageId) {
+            throw new CanDbcFileFormatException(String.format("Unknown message id: '%s'.",argValues.get(0)));
+        }
     }
 
 }

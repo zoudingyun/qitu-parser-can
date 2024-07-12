@@ -142,6 +142,15 @@ public class CanDbcSignal extends CanDbcPart {
         this.multiplexerIndicator = multiplexerIndicator;
     }
 
+
+    public Map<String, List<CanDbcSignal>> getMultiplexedSignalMap() {
+        return multiplexedSignalMap;
+    }
+
+    public void setMultiplexedSignalMap(Map<String, List<CanDbcSignal>> multiplexedSignalMap) {
+        this.multiplexedSignalMap = multiplexedSignalMap;
+    }
+
     public List<CanDbcSignal> getMultiplexedSignalListBySwitchValue(String switchValue) {
         if (multiplexedSignalMap == null) {
             multiplexedSignalMap = new HashMap<>();

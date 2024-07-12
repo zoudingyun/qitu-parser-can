@@ -41,14 +41,14 @@ public class CanDbUtilsTests {
             assertEquals(db.getCanDbcProperties().getNodes().getNodeList().get(i).getName(),rawNodes[i]);
         }
 
-        // 消息
+        // 消息1
         CanDbcMessages messages = db.getCanDbcProperties().getMessages();
         assertEquals(messages.getMessageList().get(0).getMessageId(),new BigInteger("12"));
         assertEquals(messages.getMessageList().get(0).getMessageName(),"ID00CUI_status");
         assertEquals(messages.getMessageList().get(0).getMessageSize(),8);
         assertEquals(messages.getMessageList().get(0).getTransmitter().getName(),"VehicleBus");
 
-        // 信号
+        // 信号1
         List<CanDbcSignal> signals = messages.getMessageList().get(0).getSignalList();
         assertEquals(signals.get(0).getSignalName(),"UI_audioActive");
         assertEquals(signals.get(1).getMultiplexerIndicator(), CanDbcSignalMultiplexerType.SIGNAL);
@@ -63,7 +63,23 @@ public class CanDbUtilsTests {
         assertEquals(signals.get(10).getUnit(),"w");
         assertEquals(signals.get(11).getReceiver().getName(),"Receiver");
 
+        // 消息2
+        assertEquals(messages.getMessageList().get(1).getMessageId(),new BigInteger("1025"));
+        assertEquals(messages.getMessageList().get(1).getMessageName(),"ID401BrickVoltages");
+        assertEquals(messages.getMessageList().get(1).getMessageSize(),8);
+        assertEquals(messages.getMessageList().get(1).getTransmitter().getName(),"VehicleBus");
+        assertEquals(messages.getMessageList().get(1).getSignalList().size(),2);
 
+        // 信号2
+        signals = messages.getMessageList().get(1).getSignalList();
+        assertEquals(signals.get(0).getMultiplexerIndicator(),CanDbcSignalMultiplexerType.MULTIPLEXER);
+        assertEquals(signals.get(0).getMultiplexedSignalMap().size(),37);
+        assertEquals(signals.get(1).getMultiplexerIndicator(),CanDbcSignalMultiplexerType.SIGNAL);
+
+        // 额外的信号发送器
+        assertEquals(messages.getMessageList().get(0).getExtraTransmitters().size(),2);
+        assertEquals(messages.getMessageList().get(0).getExtraTransmitters().get(0).getName(),"ChassisBus");
+        assertEquals(messages.getMessageList().get(0).getExtraTransmitters().get(1).getName(),"VehicleBus");
 
         int a = 0;
 

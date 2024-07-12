@@ -35,6 +35,9 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
      * */
     private CanDbcMessages messages;
 
+
+
+
     /**
      * 自定义属性设定集
      * */

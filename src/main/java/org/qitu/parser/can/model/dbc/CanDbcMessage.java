@@ -52,6 +52,16 @@ public class CanDbcMessage implements CanDbcAttributeCreator{
     private List<CanDbcSignal> signalList;
 
     /**
+     * 额外的发送器节点名 （extra transmitter）
+     * <br>
+     * 使用“BO_TX_BU_”定义的额外发送器节点
+     * <br>
+     * Additional transmitter nodes defined using 'BO_TX_BU_'.
+     * */
+    private List<CanDbcNode> extraTransmitters;
+
+
+    /**
      * 自定义属性设定集
      * */
     private List<CanDbcAttributeDefinition> attributeDefinitions;
@@ -155,6 +165,21 @@ public class CanDbcMessage implements CanDbcAttributeCreator{
             }
         }
         this.signalList = signalList;
+    }
+
+    public List<CanDbcNode> getExtraTransmitters() {
+        return extraTransmitters;
+    }
+
+    public void setExtraTransmitters(List<CanDbcNode> extraTransmitters) {
+        this.extraTransmitters = extraTransmitters;
+    }
+
+    public void addExtraTransmitter(CanDbcNode canDbcTransmitter) {
+        if (this.extraTransmitters == null){
+            this.extraTransmitters = new ArrayList<>();
+        }
+        extraTransmitters.add(canDbcTransmitter);
     }
 
     /**
