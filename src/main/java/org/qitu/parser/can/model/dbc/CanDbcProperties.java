@@ -37,6 +37,13 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
 
 
 
+    /**
+     * 暂不支持的属性
+     * */
+    private List<CanDbcNotSupportedPart> canDbcNotSupportedParts;
+
+
+
 
     /**
      * 自定义属性设定集
@@ -74,6 +81,29 @@ public class CanDbcProperties implements CanDbcAttributeCreator{
 
     public void setMessages(CanDbcMessages messages) {
         this.messages = messages;
+    }
+
+
+    /**
+     * 添加一个已知但不支持的属性
+     *
+     * @param canDbcNotSupportedPart 定义属性
+     */
+    public void addCanDbcNotSupportedPart(CanDbcNotSupportedPart canDbcNotSupportedPart) {
+        if (!(canDbcNotSupportedPart == null)) {
+            if (canDbcNotSupportedParts == null){
+                canDbcNotSupportedParts = new ArrayList<>();
+            }
+            this.canDbcNotSupportedParts.add(canDbcNotSupportedPart);
+        }
+    }
+
+    public List<CanDbcNotSupportedPart> getCanDbcNotSupportedParts() {
+        return canDbcNotSupportedParts;
+    }
+
+    public void setCanDbcNotSupportedParts(List<CanDbcNotSupportedPart> canDbcNotSupportedParts) {
+        this.canDbcNotSupportedParts = canDbcNotSupportedParts;
     }
 
     /**

@@ -436,6 +436,18 @@ public class CanDbUtils {
                 formatExtraTransmitters(argValues,canDbcProperties);
                 break;
             }
+            // 环境变量
+            case ENVIRONMENT_VARIABLE:
+            // 信号类型
+            case SIGNAL_TYPE:
+            // 信号组
+            case SIGNAL_GROUPS:
+            {
+                CanDbcNotSupportedPart canDbcNotSupportedPart = new CanDbcNotSupportedPart(canDbcPartType);
+                canDbcProperties.addCanDbcNotSupportedPart(canDbcNotSupportedPart);
+                break;
+            }
+
         }
         return canDbcPartType;
     }

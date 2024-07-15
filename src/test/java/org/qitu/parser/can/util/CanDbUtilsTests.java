@@ -114,8 +114,7 @@ public class CanDbUtilsTests {
                 "\tBU_EV_REL_\n" +
                 "\tBU_BO_REL_\n" +
                 "\tSG_MUL_VAL_";
-        List<String> newSymbolList = Arrays.asList(raw.split("\n\t"));
-        return newSymbolList;
+        return Arrays.asList(raw.split("\n\t"));
     }
 
 }
